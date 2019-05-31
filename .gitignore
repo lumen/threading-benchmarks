@@ -1,0 +1,8 @@
+dist
+
+!dist/native-c/.gitkeep
+
+!dist/wasm-c/.gitkeep
+!dist/wasm-c/index.html
+
+!dist/js/.gitkeep
