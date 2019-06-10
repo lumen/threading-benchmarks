@@ -33,7 +33,7 @@ Prerequisites: EMCC, http-server
 To compile:
 
 ```
-emcc src/threads.c -O2 -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=2 -o ./dist/wasm-c/threads.js
+emcc src/wasm-c/threads.c -O2 -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=2 -o ./dist/wasm-c/threads.js
 ```
 
 To run in browser (note `-c-1` prevents caching):
@@ -55,7 +55,7 @@ Prerequisites: GCC
 To compile:
 
 ```
-gcc src/threads.c -O2 -o ./dist/native-c/threads
+gcc src/native-c/threads.c -O2 -o ./dist/native-c/threads
 ```
 
 The `threads` executable takes two ordered args:
