@@ -1,0 +1,25 @@
+{
+  "name": "threading-benchmarks",
+  "version": "0.0.1",
+  "description": "Threading benchmarks for WebAssembly",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "build:js": "rm -rf dist/js && mkdir dist/js && cp src/js/* dist/js/",
+    "build:nc": "gcc src/native-c/threads.c -O2 -o ./dist/native-c/threads",
+    "build:wc": "emcc src/wasm-c/threads.c -O2 -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=2 -o ./dist/wasm-c/threads.js",
+    "serve:js": "http-server -c-1 ./dist/js/",
+    "serve:wc": "http-server -c-1 ./dist/wasm-c/",
+    "run:nc": "./dist/native-c/threads 70 10"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lumen/threading-benchmarks.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lumen/threading-benchmarks/issues"
+  },
+  "homepage": "https://github.com/lumen/threading-benchmarks#readme"
+}
