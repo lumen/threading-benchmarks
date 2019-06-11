@@ -28,8 +28,10 @@ unsigned long fibonacci(int iterations) {
     }
   }
 
-  printf("Fib(%d) is %ld - calculated in %f ms\n", iterations, val,
-         duration(time_start, emscripten_get_now()));
+#ifdef __EMSCRIPTEN__
+  emscripten_log(EM_LOG_CONSOLE, "Fib(%d) is %ld - calculated in %f ms\n",
+                 iterations, val, duration(time_start, emscripten_get_now()));
+#endif
 
   return val;
 }
@@ -68,7 +70,10 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  printf("Total duration: %f ms\n", duration(time_start, emscripten_get_now()));
+#ifdef __EMSCRIPTEN__
+  emscripten_log(EM_LOG_CONSOLE, "Total duration: %f ms\n",
+                 duration(time_start, emscripten_get_now()));
+#endif
 
   return 0;
 }
