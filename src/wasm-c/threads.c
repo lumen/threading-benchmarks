@@ -1,3 +1,4 @@
+#include "../algorithms/algorithms.h"
 #include <inttypes.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -11,64 +12,75 @@ double duration(double time_start, double time_end) {
   return (time_end - time_start);
 }
 
-unsigned long fibonacci(int iterations) {
+double time_algorithm(int a, int iterations) {
   double time_start = emscripten_get_now();
-  unsigned long val = 0;
-  unsigned long last = 0;
 
-  if (iterations > 0) {
-    val++;
-
-    for (int i = 1; i < iterations; i++) {
-      unsigned long seq;
-
-      seq = val + last;
-      last = val;
-      val = seq;
-    }
+  for (int i = 0; i < iterations; i++) {
+    perform_algorithm(a);
   }
 
-#ifdef __EMSCRIPTEN__
-  emscripten_log(EM_LOG_CONSOLE, "Fib(%d) is %ld - calculated in %f ms\n",
-                 iterations, val, duration(time_start, emscripten_get_now()));
-#endif
-
-  return val;
+  return duration(time_start, emscripten_get_now());
 }
 
 // Start function for the background thread
 void *bg_func(void *arg) {
-  int *iter = (void *)arg;
-  *iter = fibonacci(*iter);
+  int *a = (void *)arg;
+
+#ifdef __EMSCRIPTEN__
+  emscripten_log(EM_LOG_CONSOLE, "Background: %s performed in %f ms\n",
+                 algorithm_name(a[0]), time_algorithm(a[0], a[1]));
+#endif
+
   return arg;
 }
 
-// Foreground thread and main entry point
-int main(int argc, char *argv[]) {
-  clock_t time_start = emscripten_get_now();
+void perform(int a, int threads, int iterations_per_thread) {
+  double time_start = emscripten_get_now();
 
-  int iterations = argc > 1 ? strtoumax(argv[1], NULL, 10) : 70;
-  int threads = argc > 2 ? strtoimax(argv[2], NULL, 10) : 1;
+#ifdef __EMSCRIPTEN__
+  emscripten_log(EM_LOG_CONSOLE, "\nPerforming %s\n", algorithm_name(a));
+#endif
 
   // Create background threads
   pthread_t bg_thread[threads];
   for (int i = 0; i < threads; i++) {
-    if (pthread_create(&bg_thread[i], NULL, bg_func, &iterations)) {
+    int args[2];
+    args[0] = a;
+    args[1] = iterations_per_thread;
+    if (pthread_create(&bg_thread[i], NULL, bg_func, &args)) {
       perror("Thread create failed");
-      return 1;
     }
   }
 
-  // Calculate on the foreground thread
-  fibonacci(iterations);
+  // Perform on the foreground thread
+  printf("Main: %s performed in %f ms\n", algorithm_name(a),
+         time_algorithm(a, iterations_per_thread));
 
   // Wait for background threads to finish
   for (int i = 0; i < threads; i++) {
     if (pthread_join(bg_thread[i], NULL)) {
       perror("Thread join failed");
-      return 2;
     }
   }
+
+#ifdef __EMSCRIPTEN__
+  emscripten_log(EM_LOG_CONSOLE, "%s finished in %f ms\n\n", algorithm_name(a),
+                 duration(time_start, clock()));
+#endif
+}
+
+// Foreground thread and main entry point
+int main(int argc, char *argv[]) {
+  int threads = argc > 1 ? strtoimax(argv[1], NULL, 10) : 1;
+  int iterations_per_thread = argc > 2 ? strtoimax(argv[2], NULL, 10) : 1;
+  double time_start = emscripten_get_now();
+
+  printf("Background threads: %d\n", threads);
+  printf("Iterations per thread: %d\n\n", iterations_per_thread);
+
+  perform(FIBONACCI, threads, iterations_per_thread);
+  perform(MULTIPLY_INT, threads, iterations_per_thread);
+  perform(QUICKSORT_INT, threads, iterations_per_thread);
 
 #ifdef __EMSCRIPTEN__
   emscripten_log(EM_LOG_CONSOLE, "Total duration: %f ms\n",
