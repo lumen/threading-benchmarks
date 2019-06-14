@@ -8,7 +8,7 @@
     "clean:js": "rm -rf dist/js && mkdir dist/js && mkdir dist/js/algorithms",
     "build:js": "npm run clean:js && cp src/js/* dist/js/ && cp src/algorithms/*.js dist/js/algorithms/",
     "build:nc": "gcc src/native-c/threads.c src/algorithms/*.c -O2 -o ./dist/native-c/threads",
-    "build:wc": "emcc src/wasm-c/threads.c src/algorithms/*.c -O2 -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=2 -o ./dist/wasm-c/threads.js",
+    "build:wc": "emcc src/wasm-c/threads.c src/algorithms/*.c -O2 -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=4 -o ./dist/wasm-c/threads.js",
     "serve:js": "http-server -c-1 ./dist/js/",
     "serve:wc": "http-server -c-1 ./dist/wasm-c/",
     "exec:nc": "./dist/native-c/threads"

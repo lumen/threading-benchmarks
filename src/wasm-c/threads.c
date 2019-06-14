@@ -71,8 +71,8 @@ void perform(int a, int threads, int iterations_per_thread) {
 
 // Foreground thread and main entry point
 int main(int argc, char *argv[]) {
-  int threads = argc > 1 ? strtoimax(argv[1], NULL, 10) : 1;
-  int iterations_per_thread = argc > 2 ? strtoimax(argv[2], NULL, 10) : 1;
+  int threads = argc > 1 ? strtoimax(argv[1], NULL, 10) : 4;
+  int iterations_per_thread = argc > 2 ? strtoimax(argv[2], NULL, 10) : 10;
   double time_start = emscripten_get_now();
 
   printf("Background threads: %d\n", threads);
