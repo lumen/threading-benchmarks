@@ -1,37 +1,26 @@
+import { algorithmName, performAlgorithm } from "./algorithms/algorithms.js";
+
 function duration(time_start, time_end) {
   return time_end - time_start;
 }
 
-function fibonacci(iterations) {
-  const time_start = performance.now();
-  let val = 0;
-  let last = 0;
+onmessage = function(e) {
+  const [thread, algorithm, iterationsPerThread] = e.data.split(":");
+  const a = parseInt(algorithm);
+  const timeStart = performance.now();
 
-  if (iterations > 0) {
-    val++;
-
-    for (let i = 1; i < iterations; i++) {
-      let seq;
-
-      seq = val + last;
-      last = val;
-      val = seq;
-    }
+  for (let i = 0; i < iterationsPerThread; i++) {
+    performAlgorithm(a);
   }
 
   console.log(
-    `Fib(${iterations}) is ${val} - calculated in ${duration(
-      time_start,
+    `Worker[${thread}]: ${algorithmName(
+      a
+    )} performed ${iterationsPerThread} times in ${duration(
+      timeStart,
       performance.now()
-    )} ms`
+    )} ms\n`
   );
 
-  return val;
-}
-
-onmessage = function(e) {
-  console.log("Worker: Message received from main script");
-  let result = fibonacci(e.data);
-  console.log("Worker: Posting message back to main script");
-  postMessage(`${result}`);
+  postMessage(thread);
 };
