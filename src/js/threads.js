@@ -25,33 +25,51 @@ function performMain(a, iterations) {
   );
 }
 
-function perform(a, threads, iterationsPerThread) {
-  let workers = [];
-  let finished = 0;
-  let i;
+async function perform(a, threads, iterationsPerThread) {
+  const timeStart = performance.now();
 
-  for (i = 0; i < threads; i++) {
-    let worker = new Worker("worker.js", { type: "module" });
-    workers[i] = worker;
-    worker.onmessage = function(e) {
-      finished++;
-      // console.log(`Worker ${e.data} finished. Total: ${finished}`);
-    };
-    worker.postMessage(`${i}:${a}:${iterationsPerThread}`);
-  }
+  let work = new Promise(function(resolve, reject) {
+    let workers = [];
+    let finished = 0;
+    let i;
+
+    for (i = 0; i < threads; i++) {
+      let worker = new Worker("worker.js", { type: "module" });
+      workers[i] = worker;
+      worker.onmessage = function(e) {
+        finished++;
+
+        // console.log(`Worker ${e.data} finished. Total: ${finished}`);
+
+        if (finished === threads) {
+          resolve();
+        }
+      };
+      worker.postMessage(`${i}:${a}:${iterationsPerThread}`);
+    }
+  });
 
   performMain(a, iterationsPerThread);
+
+  await work;
+
+  console.log(
+    `${algorithmName(a)} finished in ${duration(
+      timeStart,
+      performance.now()
+    )} ms\n`
+  );
 }
 
-export function main(threads, iterationsPerThread) {
+export async function main(threads, iterationsPerThread) {
   const timeStart = performance.now();
 
   console.log(`Background threads: ${threads}`);
   console.log(`Iterations per thread: ${iterationsPerThread}\n`);
 
-  perform(FIBONACCI, threads, iterationsPerThread);
-  perform(MULTIPLY_INT, threads, iterationsPerThread);
-  perform(QUICKSORT_INT, threads, iterationsPerThread);
+  await perform(FIBONACCI, threads, iterationsPerThread);
+  await perform(MULTIPLY_INT, threads, iterationsPerThread);
+  await perform(QUICKSORT_INT, threads, iterationsPerThread);
 
   console.log(`Total duration: ${duration(timeStart, performance.now())} ms\n`);
 }
