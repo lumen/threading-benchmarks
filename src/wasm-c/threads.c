@@ -65,7 +65,7 @@ void perform(int a, int threads, int iterations_per_thread) {
 
 #ifdef __EMSCRIPTEN__
   emscripten_log(EM_LOG_CONSOLE, "%s finished in %f ms\n\n", algorithm_name(a),
-                 duration(time_start, clock()));
+                 duration(time_start, emscripten_get_now()));
 #endif
 }
 
