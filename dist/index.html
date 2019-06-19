@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+  <title>Multithreaded test</title>
+  <body>
+    <h1>Multithreading test</h1>
+    <script src="./js/algorithms/algorithms.js" type="module"></script>
+    <script src="./js/threads.js" type="module"></script>
+    <script type="module">
+      import { perform } from "./js/threads.js";
+      import {
+        ALGORITHM_FIRST,
+        ALGORITHM_LAST,
+        algorithmName
+      } from "./js/algorithms/algorithms.js";
+
+      let algorithmContainer = document.getElementById("algorithms");
+
+      for (let i = ALGORITHM_FIRST; i <= ALGORITHM_LAST; i++) {
+        let input = document.createElement("input");
+        input.id = `alg${i}`;
+        input.type = "checkbox";
+        input.checked = true;
+        let label = document.createElement("label");
+        label.htmlFor = `alg${i}`;
+        label.innerText = algorithmName(i);
+        algorithmContainer.appendChild(input);
+        algorithmContainer.appendChild(label);
+      }
+
+      document.getElementById("run").addEventListener("click", async function() {
+        let algorithms = [];
+        for (let i = ALGORITHM_FIRST; i <= ALGORITHM_LAST; i++) {
+          let input = document.getElementById(`alg${i}`);
+          if (input.checked) {
+            algorithms.push(i);
+          }
+        }
+
+        let minIterations = parseInt(
+          document.getElementById("minIterations").value
+        );
+        let maxIterations = parseInt(
+          document.getElementById("maxIterations").value
+        );
+        let iterations = [];
+        for (let i = minIterations; i <= maxIterations; i++) {
+          iterations.push(i);
+        }
+
+
+        let minThreads = parseInt(document.getElementById("minThreads").value);
+        let maxThreads = parseInt(document.getElementById("maxThreads").value);
+        let threads = [];
+        for (let t = minThreads; t <= maxThreads; t++) {
+          threads.push(t);
+        }
+
+        (async function loop() {
+          for (let a of algorithms) {
+            for (let t of threads) {
+              for (let i of iterations) {
+                let start = performance.now();
+                await perform(a, t, i);
+                let finished = performance.now();
+                console.log(algorithmName(a), t, i, finished - start);
+              }
+            }
+          }
+        })();
+      });
+    </script>
+    <section>
+      <h3>Threads</h3>
+      <label>Min:</label><input type="number" id="minThreads" value="0" />
+      <label>Max:</label><input type="number" id="maxThreads" value="4" />
+    </section>
+    <section>
+      <h3>Iterations per thread</h3>
+      <label>Min:</label><input type="number" id="minIterations" value="0" />
+      <label>Max:</label><input type="number" id="maxIterations" value="10" />
+    </section>
+    <section>
+      <h3>Algorithms</h3>
+      <div id="algorithms" />
+    </section>
+    <section>
+      <button id="run">Run</button>
+    </section>
+  </body>
+</html>
