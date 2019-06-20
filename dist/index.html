@@ -76,6 +76,11 @@
         }
       }
 
+      function renderAll() {
+        renderAlgorithms();
+        renderScenarios();
+      }
+
       function selectedAlgorithms() {
         let algorithms = [];
         for (let i = ALGORITHM_FIRST; i <= ALGORITHM_LAST; i++) {
@@ -140,17 +145,6 @@
         }
       }
 
-      async function performScenario(scenario, a, t, i, options) {
-        switch(scenario) {
-          case SCENARIO_JS_SPAWN_THREADS:
-          case SCENARIO_JS_REUSE_THREADS:
-            return await performAlgorithmInJS(a, t, i, options);
-
-          case SCENARIO_WASM_REUSE_THREADS:
-            return await Module.callMain([`${a}`, `${t}`, `${i}`]);
-        }
-      }
-
       async function teardownScenario(scenario, options) {
         switch(scenario) {
           case SCENARIO_JS_SPAWN_THREADS:
@@ -165,34 +159,50 @@
         }
       }
 
-      renderAlgorithms();
-      renderScenarios();
+      async function performScenario(scenario, a, t, i, options) {
+        switch(scenario) {
+          case SCENARIO_JS_SPAWN_THREADS:
+          case SCENARIO_JS_REUSE_THREADS:
+            return await performAlgorithmInJS(a, t, i, options);
 
-      document.getElementById("run").addEventListener("click", async function() {
-        (async function loop() {
-          const options = {};
-          const scenarios = selectedScenarios();
-          const algorithms = selectedAlgorithms();
-          const threads = selectedThreads();
-          const iterations = selectedIterations();
+          case SCENARIO_WASM_REUSE_THREADS:
+            return await Module.callMain([`${a}`, `${t}`, `${i}`]);
+        }
+      }
 
-          for (let s of scenarios) {
-            options[s] = await prepareScenarioOptions(s, threads[threads.length - 1]);
-          }
+      async function performAll() {
+        const options = {};
+        const scenarios = selectedScenarios();
+        const algorithms = selectedAlgorithms();
+        const threads = selectedThreads();
+        const iterations = selectedIterations();
 
-          for (let s of scenarios) {
-            for (let a of algorithms) {
-              for (let t of threads) {
-                for (let i of iterations) {
-                  let start = performance.now();
-                  await performScenario(s, a, t, i, options[s]);
-                  let finished = performance.now();
-                  console.log(scenarioName(s), algorithmName(a), t, i, finished - start);
-                }
+        for (let s of scenarios) {
+          options[s] = await prepareScenarioOptions(s, threads[threads.length - 1]);
+        }
+
+        for (let s of scenarios) {
+          for (let a of algorithms) {
+            for (let t of threads) {
+              for (let i of iterations) {
+                let start = performance.now();
+                await performScenario(s, a, t, i, options[s]);
+                let finished = performance.now();
+                console.log(scenarioName(s), algorithmName(a), t, i, finished - start);
               }
             }
           }
-        })();
+        }
+
+        for (let s of scenarios) {
+          options[s] = await teardownScenario(s, options[s]);
+        }
+      }
+
+      renderAll();
+
+      document.getElementById("run").addEventListener("click", async function() {
+        performAll();
       });
     </script>
   </head>
@@ -220,8 +230,8 @@
       <h3>Iterations per thread</h3>
       <section class="inputs">
         <label>Min:</label><input type="number" id="minIterations" value="0" />
-        <label>Max:</label><input type="number" id="maxIterations" value="1" />
-        <label>Step:</label><input type="number" id="stepIterations" value="1" />
+        <label>Max:</label><input type="number" id="maxIterations" value="10" />
+        <label>Step:</label><input type="number" id="stepIterations" value="5" />
       </section>
     </section>
 
