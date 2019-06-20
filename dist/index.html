@@ -3,6 +3,15 @@
   <title>Multithreaded test</title>
   <body>
     <h1>Multithreading test</h1>
+    <!-- app.html -->
+    <script type="text/javascript">
+      // Settings for emscripten `Module`
+      var Module = {
+        // Don't run main() on page load
+        noInitialRun: true
+      };
+    </script>
+    <script src="./wasm-c/threads.js"></script>
     <script src="./js/algorithms/algorithms.js" type="module"></script>
     <script src="./js/threads.js" type="module"></script>
     <script type="module">
@@ -13,21 +22,52 @@
         algorithmName
       } from "./js/algorithms/algorithms.js";
 
-      let algorithmContainer = document.getElementById("algorithms");
+      const SCENARIO_FIRST = 0;
+      const SCENARIO_JS_SPAWN_THREADS = 0;
+      // const SCENARIO_JS_REUSE_THREADS = 1;
+      const SCENARIO_WASM_REUSE_THREADS = 1;
+      const SCENARIO_LAST = 1;
 
-      for (let i = ALGORITHM_FIRST; i <= ALGORITHM_LAST; i++) {
-        let input = document.createElement("input");
-        input.id = `alg${i}`;
-        input.type = "checkbox";
-        input.checked = true;
-        let label = document.createElement("label");
-        label.htmlFor = `alg${i}`;
-        label.innerText = algorithmName(i);
-        algorithmContainer.appendChild(input);
-        algorithmContainer.appendChild(label);
+      function scenarioName(scenario) {
+        switch(scenario) {
+          case SCENARIO_JS_SPAWN_THREADS:
+            return "JS - Spawn threads";
+          case SCENARIO_WASM_REUSE_THREADS:
+            return "WASM - Reuse threads";
+        }
       }
 
-      document.getElementById("run").addEventListener("click", async function() {
+      function renderScenarios() {
+        let container = document.getElementById("scenarios");
+        for (let i = SCENARIO_FIRST; i <= SCENARIO_LAST; i++) {
+          let input = document.createElement("input");
+          input.id = `scenario${i}`;
+          input.type = "checkbox";
+          input.checked = true;
+          let label = document.createElement("label");
+          label.htmlFor = `scenario${i}`;
+          label.innerText = scenarioName(i);
+          container.appendChild(input);
+          container.appendChild(label);
+        }
+      }
+
+      function renderAlgorithms() {
+        let container = document.getElementById("algorithms");
+        for (let i = ALGORITHM_FIRST; i <= ALGORITHM_LAST; i++) {
+          let input = document.createElement("input");
+          input.id = `alg${i}`;
+          input.type = "checkbox";
+          input.checked = true;
+          let label = document.createElement("label");
+          label.htmlFor = `alg${i}`;
+          label.innerText = algorithmName(i);
+          container.appendChild(input);
+          container.appendChild(label);
+        }
+      }
+
+      function selectedAlgorithms() {
         let algorithms = [];
         for (let i = ALGORITHM_FIRST; i <= ALGORITHM_LAST; i++) {
           let input = document.getElementById(`alg${i}`);
@@ -35,7 +75,21 @@
             algorithms.push(i);
           }
         }
+        return algorithms;
+      }
 
+      function selectedScenarios() {
+        let scenarios = [];
+        for (let i = SCENARIO_FIRST; i <= SCENARIO_LAST; i++) {
+          let input = document.getElementById(`scenario${i}`);
+          if (input.checked) {
+            scenarios.push(i);
+          }
+        }
+        return scenarios;
+      }
+
+      function selectedIterations() {
         let minIterations = parseInt(
           document.getElementById("minIterations").value
         );
@@ -46,23 +100,43 @@
         for (let i = minIterations; i <= maxIterations; i++) {
           iterations.push(i);
         }
+        return iterations;
+      }
 
-
+      function selectedThreads() {
         let minThreads = parseInt(document.getElementById("minThreads").value);
         let maxThreads = parseInt(document.getElementById("maxThreads").value);
         let threads = [];
         for (let t = minThreads; t <= maxThreads; t++) {
           threads.push(t);
         }
+        return threads;
+      }
 
+      async function performScenario(scenario, a, t, i) {
+        switch(scenario) {
+          case SCENARIO_JS_SPAWN_THREADS:
+            return await perform(a, t, i);
+
+          case SCENARIO_WASM_REUSE_THREADS:
+            return await Module.callMain([`${a}`, `${t}`, `${i}`]);
+        }
+      }
+
+      renderAlgorithms();
+      renderScenarios();
+
+      document.getElementById("run").addEventListener("click", async function() {
         (async function loop() {
-          for (let a of algorithms) {
-            for (let t of threads) {
-              for (let i of iterations) {
-                let start = performance.now();
-                await perform(a, t, i);
-                let finished = performance.now();
-                console.log(algorithmName(a), t, i, finished - start);
+          for (let s of selectedScenarios()) {
+            for (let a of selectedAlgorithms()) {
+              for (let t of selectedThreads()) {
+                for (let i of selectedIterations()) {
+                  let start = performance.now();
+                  await performScenario(s, a, t, i);
+                  let finished = performance.now();
+                  console.log(scenarioName(s), algorithmName(a), t, i, finished - start);
+                }
               }
             }
           }
@@ -82,6 +156,10 @@
     <section>
       <h3>Algorithms</h3>
       <div id="algorithms" />
+    </section>
+    <section>
+      <h3>Scenarios</h3>
+      <div id="scenarios" />
     </section>
     <section>
       <button id="run">Run</button>

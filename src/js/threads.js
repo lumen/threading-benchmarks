@@ -14,7 +14,7 @@ export function perform(a, threads, iterationsPerThread) {
         worker.onmessage = function(e) {
           finished++;
 
-          console.log(`Worker ${e.data} finished. Total: ${finished}`);
+          // console.log(`Worker ${e.data} finished. Total: ${finished}`);
 
           // Note: Terminating each thread has significant performance implications
           // worker.terminate();
