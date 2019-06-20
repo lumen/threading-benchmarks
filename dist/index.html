@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html>
-  <title>Multithreaded test</title>
-  <body>
-    <h1>Multithreading test</h1>
-    <!-- app.html -->
+  <head>
+    <title>Multithreaded test</title>
+    <link href="app.css" rel="stylesheet" type="text/css">
     <script type="text/javascript">
       // Settings for emscripten `Module`
       var Module = {
@@ -46,6 +45,7 @@
       function renderScenarios() {
         let container = document.getElementById("scenarios");
         for (let i = SCENARIO_FIRST; i <= SCENARIO_LAST; i++) {
+          let li = document.createElement("li");
           let input = document.createElement("input");
           input.id = `scenario${i}`;
           input.type = "checkbox";
@@ -53,14 +53,16 @@
           let label = document.createElement("label");
           label.htmlFor = `scenario${i}`;
           label.innerText = scenarioName(i);
-          container.appendChild(input);
-          container.appendChild(label);
+          li.appendChild(input);
+          li.appendChild(label);
+          container.appendChild(li);
         }
       }
 
       function renderAlgorithms() {
         let container = document.getElementById("algorithms");
         for (let i = ALGORITHM_FIRST; i <= ALGORITHM_LAST; i++) {
+          let li = document.createElement("li");
           let input = document.createElement("input");
           input.id = `alg${i}`;
           input.type = "checkbox";
@@ -68,8 +70,9 @@
           let label = document.createElement("label");
           label.htmlFor = `alg${i}`;
           label.innerText = algorithmName(i);
-          container.appendChild(input);
-          container.appendChild(label);
+          li.appendChild(input);
+          li.appendChild(label);
+          container.appendChild(li);
         }
       }
 
@@ -102,8 +105,11 @@
         let maxIterations = parseInt(
           document.getElementById("maxIterations").value
         );
+        let step = parseInt(
+          document.getElementById("stepIterations").value
+        );
         let iterations = [];
-        for (let i = minIterations; i <= maxIterations; i++) {
+        for (let i = minIterations; i <= maxIterations; i += step) {
           iterations.push(i);
         }
         return iterations;
@@ -189,30 +195,37 @@
         })();
       });
     </script>
-
+  </head>
+  <body>
+    <h1>Multithreading test</h1>
     <section>
       <h3>Scenarios</h3>
-      <div id="scenarios" />
+      <ul id="scenarios" class="inputs" />
     </section>
 
     <section>
-        <h3>Algorithms</h3>
-        <div id="algorithms" />
-      </section>
+      <h3>Algorithms</h3>
+      <ul id="algorithms" class="inputs" />
+    </section>
 
     <section>
       <h3>Threads</h3>
-      <label>Min:</label><input type="number" id="minThreads" value="0" />
-      <label>Max:</label><input type="number" id="maxThreads" value="4" />
+      <section class="inputs">
+        <label>Min:</label><input type="number" id="minThreads" value="0" />
+        <label>Max:</label><input type="number" id="maxThreads" value="4" />
+      </section>
     </section>
 
     <section>
       <h3>Iterations per thread</h3>
-      <label>Min:</label><input type="number" id="minIterations" value="0" />
-      <label>Max:</label><input type="number" id="maxIterations" value="1" />
+      <section class="inputs">
+        <label>Min:</label><input type="number" id="minIterations" value="0" />
+        <label>Max:</label><input type="number" id="maxIterations" value="1" />
+        <label>Step:</label><input type="number" id="stepIterations" value="1" />
+      </section>
     </section>
 
-    <section>
+    <section class="controls">
       <button id="run">Run</button>
     </section>
   </body>
