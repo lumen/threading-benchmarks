@@ -1,23 +1,43 @@
 import { performAlgorithm } from "./algorithms/algorithms.js";
 
-export function perform(a, threads, iterationsPerThread) {
+export async function prepareJSWorkers(threads) {
+  let workers = [];
+  for (let i = 0; i < threads; i++) {
+    let worker = new Worker("./js/worker.js", { type: "module" });
+    workers.push(worker);
+  }
+  return workers;
+}
+
+export async function terminateJSWorkers(workers) {
+  for (let worker of workers) {
+    await worker.terminate();
+  }
+}
+
+export async function performAlgorithmInJS(
+  a,
+  threads,
+  iterationsPerThread,
+  options = {}
+) {
   // Spawn background workers if threads > 0
   let backgroundWork = new Promise(function(resolve) {
-    let workers = [];
-    let finished = 0;
-    let i;
-
     if (threads > 0) {
-      for (i = 0; i < threads; i++) {
-        let worker = new Worker("./js/worker.js", { type: "module" });
-        workers[i] = worker;
+      let workersProvided = !!options.workers;
+      let workers = options.workers || prepareJSWorkers(threads);
+      let finished = 0;
+
+      for (let i = 0; i < threads; i++) {
+        let worker = workers[i];
         worker.onmessage = function(e) {
           finished++;
-
           // console.log(`Worker ${e.data} finished. Total: ${finished}`);
 
           // Note: Terminating each thread has significant performance implications
-          // worker.terminate();
+          if (!workersProvided) {
+            worker.terminate();
+          }
 
           if (finished === threads) {
             resolve();

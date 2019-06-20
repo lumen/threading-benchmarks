@@ -15,7 +15,11 @@
     <script src="./js/algorithms/algorithms.js" type="module"></script>
     <script src="./js/threads.js" type="module"></script>
     <script type="module">
-      import { perform } from "./js/threads.js";
+      import {
+        performAlgorithmInJS,
+        prepareJSWorkers,
+        terminateJSWorkers
+      } from "./js/threads.js";
       import {
         ALGORITHM_FIRST,
         ALGORITHM_LAST,
@@ -24,14 +28,16 @@
 
       const SCENARIO_FIRST = 0;
       const SCENARIO_JS_SPAWN_THREADS = 0;
-      // const SCENARIO_JS_REUSE_THREADS = 1;
-      const SCENARIO_WASM_REUSE_THREADS = 1;
-      const SCENARIO_LAST = 1;
+      const SCENARIO_JS_REUSE_THREADS = 1;
+      const SCENARIO_WASM_REUSE_THREADS = 2;
+      const SCENARIO_LAST = 2;
 
       function scenarioName(scenario) {
         switch(scenario) {
           case SCENARIO_JS_SPAWN_THREADS:
             return "JS - Spawn threads";
+          case SCENARIO_JS_REUSE_THREADS:
+            return "JS - Reuse threads";
           case SCENARIO_WASM_REUSE_THREADS:
             return "WASM - Reuse threads";
         }
@@ -113,13 +119,43 @@
         return threads;
       }
 
-      async function performScenario(scenario, a, t, i) {
+      async function prepareScenarioOptions(scenario, maxThreads) {
         switch(scenario) {
           case SCENARIO_JS_SPAWN_THREADS:
-            return await perform(a, t, i);
+            return;
+
+          case SCENARIO_JS_REUSE_THREADS:
+            return {
+              workers: await prepareJSWorkers(maxThreads)
+            };
+
+          case SCENARIO_WASM_REUSE_THREADS:
+            return;
+        }
+      }
+
+      async function performScenario(scenario, a, t, i, options) {
+        switch(scenario) {
+          case SCENARIO_JS_SPAWN_THREADS:
+          case SCENARIO_JS_REUSE_THREADS:
+            return await performAlgorithmInJS(a, t, i, options);
 
           case SCENARIO_WASM_REUSE_THREADS:
             return await Module.callMain([`${a}`, `${t}`, `${i}`]);
+        }
+      }
+
+      async function teardownScenario(scenario, options) {
+        switch(scenario) {
+          case SCENARIO_JS_SPAWN_THREADS:
+            return;
+
+          case SCENARIO_JS_REUSE_THREADS:
+            await terminateJSWorkers(options.workers);
+            return;
+
+          case SCENARIO_WASM_REUSE_THREADS:
+            return;
         }
       }
 
@@ -128,12 +164,22 @@
 
       document.getElementById("run").addEventListener("click", async function() {
         (async function loop() {
-          for (let s of selectedScenarios()) {
-            for (let a of selectedAlgorithms()) {
-              for (let t of selectedThreads()) {
-                for (let i of selectedIterations()) {
+          const options = {};
+          const scenarios = selectedScenarios();
+          const algorithms = selectedAlgorithms();
+          const threads = selectedThreads();
+          const iterations = selectedIterations();
+
+          for (let s of scenarios) {
+            options[s] = await prepareScenarioOptions(s, threads[threads.length - 1]);
+          }
+
+          for (let s of scenarios) {
+            for (let a of algorithms) {
+              for (let t of threads) {
+                for (let i of iterations) {
                   let start = performance.now();
-                  await performScenario(s, a, t, i);
+                  await performScenario(s, a, t, i, options[s]);
                   let finished = performance.now();
                   console.log(scenarioName(s), algorithmName(a), t, i, finished - start);
                 }
@@ -143,24 +189,29 @@
         })();
       });
     </script>
+
+    <section>
+      <h3>Scenarios</h3>
+      <div id="scenarios" />
+    </section>
+
+    <section>
+        <h3>Algorithms</h3>
+        <div id="algorithms" />
+      </section>
+
     <section>
       <h3>Threads</h3>
       <label>Min:</label><input type="number" id="minThreads" value="0" />
       <label>Max:</label><input type="number" id="maxThreads" value="4" />
     </section>
+
     <section>
       <h3>Iterations per thread</h3>
       <label>Min:</label><input type="number" id="minIterations" value="0" />
-      <label>Max:</label><input type="number" id="maxIterations" value="10" />
+      <label>Max:</label><input type="number" id="maxIterations" value="1" />
     </section>
-    <section>
-      <h3>Algorithms</h3>
-      <div id="algorithms" />
-    </section>
-    <section>
-      <h3>Scenarios</h3>
-      <div id="scenarios" />
-    </section>
+
     <section>
       <button id="run">Run</button>
     </section>
