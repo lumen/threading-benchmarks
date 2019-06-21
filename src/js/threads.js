@@ -1,6 +1,6 @@
 import { performAlgorithm } from "./algorithms/algorithms.js";
 
-export async function prepareJSWorkers(threads) {
+export function prepareJSWorkers(threads) {
   let workers = [];
   for (let i = 0; i < threads; i++) {
     let worker = new Worker("./js/worker.js", { type: "module" });

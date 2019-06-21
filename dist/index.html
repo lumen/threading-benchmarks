@@ -137,7 +137,7 @@
 
           case SCENARIO_JS_REUSE_THREADS:
             return {
-              workers: await prepareJSWorkers(maxThreads)
+              workers: prepareJSWorkers(maxThreads)
             };
 
           case SCENARIO_WASM_REUSE_THREADS:
