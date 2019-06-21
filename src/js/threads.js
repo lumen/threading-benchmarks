@@ -1,75 +1,59 @@
-import {
-  algorithmName,
-  performAlgorithm,
-  FIBONACCI,
-  MULTIPLY_INT,
-  QUICKSORT_INT
-} from "./algorithms/algorithms.js";
+import { performAlgorithm } from "./algorithms/algorithms.js";
 
-function duration(time_start, time_end) {
-  return time_end - time_start;
-}
-
-function performMain(a, iterations) {
-  const timeStart = performance.now();
-
-  for (let i = 0; i < iterations; i++) {
-    performAlgorithm(a);
+export function prepareJSWorkers(threads) {
+  let workers = [];
+  for (let i = 0; i < threads; i++) {
+    let worker = new Worker("./js/worker.js", { type: "module" });
+    workers.push(worker);
   }
-
-  console.log(
-    `Main: ${algorithmName(a)} performed ${iterations} times in ${duration(
-      timeStart,
-      performance.now()
-    )} ms\n`
-  );
+  return workers;
 }
 
-async function perform(a, threads, iterationsPerThread) {
-  const timeStart = performance.now();
+export async function terminateJSWorkers(workers) {
+  for (let worker of workers) {
+    await worker.terminate();
+  }
+}
 
-  let work = new Promise(function(resolve, reject) {
-    let workers = [];
-    let finished = 0;
-    let i;
+export async function performAlgorithmInJS(
+  a,
+  threads,
+  iterationsPerThread,
+  options = {}
+) {
+  // Spawn background workers if threads > 0
+  let backgroundWork = new Promise(function(resolve) {
+    if (threads > 0) {
+      let workersProvided = !!options.workers;
+      let workers = options.workers || prepareJSWorkers(threads);
+      let finished = 0;
 
-    for (i = 0; i < threads; i++) {
-      let worker = new Worker("worker.js", { type: "module" });
-      workers[i] = worker;
-      worker.onmessage = function(e) {
-        finished++;
+      for (let i = 0; i < threads; i++) {
+        let worker = workers[i];
+        worker.onmessage = function(e) {
+          finished++;
+          // console.log(`Worker ${e.data} finished. Total: ${finished}`);
 
-        // console.log(`Worker ${e.data} finished. Total: ${finished}`);
+          // Note: Terminating each thread has significant performance implications
+          if (!workersProvided) {
+            worker.terminate();
+          }
 
-        if (finished === threads) {
-          resolve();
-        }
-      };
-      worker.postMessage(`${i}:${a}:${iterationsPerThread}`);
+          if (finished === threads) {
+            resolve();
+          }
+        };
+        worker.postMessage(`${a}:${i}:${iterationsPerThread}`);
+      }
+    } else {
+      resolve();
     }
   });
 
-  performMain(a, iterationsPerThread);
+  // Perform algorithm on main thread
+  for (let i = 0; i < iterationsPerThread; i++) {
+    performAlgorithm(a);
+  }
 
-  await work;
-
-  console.log(
-    `${algorithmName(a)} finished in ${duration(
-      timeStart,
-      performance.now()
-    )} ms\n`
-  );
-}
-
-export async function main(threads, iterationsPerThread) {
-  const timeStart = performance.now();
-
-  console.log(`Background threads: ${threads}`);
-  console.log(`Iterations per thread: ${iterationsPerThread}\n`);
-
-  await perform(FIBONACCI, threads, iterationsPerThread);
-  await perform(MULTIPLY_INT, threads, iterationsPerThread);
-  await perform(QUICKSORT_INT, threads, iterationsPerThread);
-
-  console.log(`Total duration: ${duration(timeStart, performance.now())} ms\n`);
+  return backgroundWork;
 }

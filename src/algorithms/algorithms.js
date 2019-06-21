@@ -2,9 +2,11 @@ import { fibonacci } from "./fibonacci.js";
 import { multiplyInt } from "./multiply-int.js";
 import { quicksortInt, randomizeIntArray } from "./quicksort-int.js";
 
+export const ALGORITHM_FIRST = 0;
 export const FIBONACCI = 0;
 export const MULTIPLY_INT = 1;
 export const QUICKSORT_INT = 2;
+export const ALGORITHM_LAST = 2;
 
 export function algorithmName(a) {
   switch (a) {
@@ -15,7 +17,7 @@ export function algorithmName(a) {
     case QUICKSORT_INT:
       return "Quicksort(Int)";
     default:
-      return "UNKNOWN ALGORITHM";
+      throw new Error("Unknown Algorithm");
   }
 }
 

@@ -1,0 +1,27 @@
+body {
+  padding: 2em;
+}
+
+section.controls {
+  margin: 2em 0;
+}
+
+ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.inputs input[type="checkbox"] {
+  margin-right: 1em;
+}
+
+.inputs input[type="number"] {
+  width: 5em;
+  margin-left: 0.5em;
+  margin-right: 1em;
+}
+
+button {
+  font-size: 120%;
+  padding: 0.5em 1em;
+}
