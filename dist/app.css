@@ -16,7 +16,7 @@ ul {
 }
 
 .inputs input[type="number"] {
-  width: 3em;
+  width: 5em;
   margin-left: 0.5em;
   margin-right: 1em;
 }
