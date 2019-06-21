@@ -15,12 +15,16 @@
 // double time_algorithm(int a, int iterations) {
 //   double time_start = emscripten_get_now();
 
-//   for (int i = 0; i < iterations; i++) {
-//     perform_algorithm(a);
-//   }
+//   perform_algorithm_iterations(a, iterations);
 
 //   return duration(time_start, emscripten_get_now());
 // }
+
+void perform_algorithm_iterations(int a, int iterations) {
+  for (int i = 0; i < iterations; i++) {
+    perform_algorithm(a);
+  }
+}
 
 // Start function for the background thread
 void *bg_func(void *arg) {
@@ -31,11 +35,13 @@ void *bg_func(void *arg) {
   //                  algorithm_name(a[0]), time_algorithm(a[0], a[1]));
   // #endif
 
+  perform_algorithm_iterations(a[0], a[1]);
+
   return arg;
 }
 
 void perform(int a, int threads, int iterations_per_thread) {
-  // double time_start = emscripten_get_now();
+  //   double time_start = emscripten_get_now();
 
   // #ifdef __EMSCRIPTEN__
   //   emscripten_log(EM_LOG_CONSOLE, "\nPerforming %s\n", algorithm_name(a));
@@ -58,7 +64,7 @@ void perform(int a, int threads, int iterations_per_thread) {
 
   // Wait for background threads to finish
   for (int i = 0; i < threads; i++) {
-    if (pthread_join(bg_thread[i], NULL)) {
+    if (pthread_join(bg_thread[i], NULL) != 0) {
       perror("Thread join failed");
     }
   }
