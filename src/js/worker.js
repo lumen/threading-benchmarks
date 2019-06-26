@@ -1,4 +1,4 @@
-import { performAlgorithm } from "./algorithms/algorithms.js";
+import { performAlgorithm } from "../algorithms/algorithms.js";
 
 onmessage = function(e) {
   const [algorithm, thread, iterations] = e.data.split(":");
