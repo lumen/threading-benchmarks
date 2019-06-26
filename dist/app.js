@@ -60,16 +60,81 @@ function renderAlgorithms() {
   }
 }
 
-function renderResults(results) {
-  let container = document.getElementById("results-table");
-  let table = document.createElement("table");
-  let headers = document.createElement("thead");
+function renderResults(selections, results) {
+  const { scenarios, algorithms, threads, iterations } = selections;
+  const container = document.getElementById("results-container");
+  const table = document.createElement("table");
+  table.className = "results";
+  const timeFormatter = new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 4
+  });
+  let tr, th, td;
 
-  for (let s in results) {
-    console.log(s);
-  }
+  const thead = document.createElement("thead");
+  tr = document.createElement("tr");
+  th = document.createElement("th");
+  th.colSpan = 2;
+  tr.appendChild(th);
+  threads.forEach(t => {
+    th = document.createElement("th");
+    th.innerText = `Threads: ${t}`;
+    th.colSpan = iterations.length;
+    tr.appendChild(th);
+  });
+  thead.appendChild(tr);
 
-  table.appendChild(headers);
+  tr = document.createElement("tr");
+  th = document.createElement("th");
+  th.colSpan = 2;
+  tr.appendChild(th);
+  threads.forEach(t => {
+    iterations.forEach(i => {
+      let th = document.createElement("th");
+      th.innerText = `${i}`;
+      tr.appendChild(th);
+    });
+  });
+  thead.appendChild(tr);
+
+  const tbody = document.createElement("tbody");
+  scenarios.forEach(s => {
+    s = scenarioName(s);
+    let tr1 = document.createElement("tr");
+    tr1.className = "scenario";
+    th = document.createElement("th");
+    th.innerText = s;
+    th.rowSpan = algorithms.length;
+    tr1.appendChild(th);
+    tr = null;
+
+    algorithms.forEach(a => {
+      a = algorithmName(a);
+
+      if (tr === null) {
+        tr = tr1;
+      } else {
+        tr = document.createElement("tr");
+        tbody.appendChild(tr);
+      }
+
+      th = document.createElement("th");
+      th.innerText = a;
+      tr.appendChild(th);
+
+      threads.forEach(t => {
+        iterations.forEach(i => {
+          td = document.createElement("td");
+          td.innerText = timeFormatter.format(results[s][a][`${t}`][`${i}`]);
+          tr.appendChild(td);
+        });
+      });
+
+      tbody.appendChild(tr);
+    });
+  });
+
+  table.appendChild(thead);
+  table.appendChild(tbody);
   container.appendChild(table);
 }
 
@@ -156,12 +221,18 @@ async function performScenario(scenario, a, t, i, options) {
   }
 }
 
-async function performAll() {
+function getSelections() {
+  return {
+    scenarios: selectedScenarios(),
+    algorithms: selectedAlgorithms(),
+    threads: selectedThreads(),
+    iterations: selectedIterations()
+  };
+}
+
+async function performAll(selections) {
   const options = {};
-  const scenarios = selectedScenarios();
-  const algorithms = selectedAlgorithms();
-  const threads = selectedThreads();
-  const iterations = selectedIterations();
+  const { scenarios, algorithms, threads, iterations } = selections;
   const results = {};
 
   for (let s of scenarios) {
@@ -202,8 +273,9 @@ export function renderApp() {
   renderAlgorithms();
   renderScenarios();
   document.getElementById("run").addEventListener("click", async function() {
-    let results = await performAll();
+    const selections = getSelections();
+    const results = await performAll(selections);
     console.log(results);
-    renderResults(results);
+    renderResults(selections, results);
   });
 }
