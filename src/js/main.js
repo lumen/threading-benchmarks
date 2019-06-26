@@ -3,7 +3,7 @@ import { performAlgorithm } from "./algorithms/algorithms.js";
 export function prepareJSWorkers(threads) {
   let workers = [];
   for (let i = 0; i < threads; i++) {
-    let worker = new Worker("./js/worker.js", { type: "module" });
+    let worker = new Worker("./js/worker.js");
     workers.push(worker);
   }
   return workers;

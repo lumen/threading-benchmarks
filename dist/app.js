@@ -2,7 +2,7 @@ import {
   performAlgorithmInJS,
   prepareJSWorkers,
   terminateJSWorkers
-} from "./js/threads.js";
+} from "./js/main.js";
 import {
   ALGORITHM_FIRST,
   ALGORITHM_LAST,
