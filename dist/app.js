@@ -6,7 +6,8 @@ import {
 import {
   ALGORITHM_FIRST,
   ALGORITHM_LAST,
-  algorithmName
+  algorithmName,
+  algorithmDescription
 } from "./js/algorithms/algorithms.js";
 
 const SCENARIO_FIRST = 0;
@@ -53,7 +54,9 @@ function renderAlgorithms() {
     input.checked = true;
     let label = document.createElement("label");
     label.htmlFor = `alg${i}`;
-    label.innerText = algorithmName(i);
+    label.innerHTML = `${algorithmName(
+      i
+    )} <span class="description">- ${algorithmDescription(i)}</span>`;
     li.appendChild(input);
     li.appendChild(label);
     container.appendChild(li);

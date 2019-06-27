@@ -21,6 +21,19 @@ export function algorithmName(a) {
   }
 }
 
+export function algorithmDescription(a) {
+  switch (a) {
+    case FIBONACCI:
+      return "10,000 iterations of fibonacci(50), performed within the same thread";
+    case MULTIPLY_INT:
+      return "10,000 integer multiplications, performed within the same thread";
+    case QUICKSORT_INT:
+      return "Quicksort of array with 1,000 members, performed within the same thread";
+    default:
+      throw new Error("Unknown Algorithm");
+  }
+}
+
 function performFibonacci() {
   const n = 0x10000;
   for (let i = 0; i < n; i++) {

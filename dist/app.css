@@ -47,3 +47,7 @@ table.results tr.scenario td,
 table.results tr.scenario th {
   border-top: 1px solid #ccc;
 }
+
+.description {
+  color: #999;
+}
