@@ -35,14 +35,14 @@ export function algorithmDescription(a) {
 }
 
 function performFibonacci() {
-  const n = 0x10000;
+  const n = 10000;
   for (let i = 0; i < n; i++) {
     fibonacci(50);
   }
 }
 
 function performMultiplyInt() {
-  multiplyInt(1.0, 1.0, 0x100000);
+  multiplyInt(1, 1, 10000);
 }
 
 function performQuicksortInt() {

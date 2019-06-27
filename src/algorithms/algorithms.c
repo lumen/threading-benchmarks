@@ -18,13 +18,13 @@ char *algorithm_name(int a) {
 }
 
 void perform_fibonacci() {
-  int n = 0x10000;
+  int n = 10000;
   for (int i = 0; i < n; i++) {
     fibonacci(50);
   }
 }
 
-void perform_multiply_int() { multiply_int(1.0, 1.0, 0x100000); }
+void perform_multiply_int() { multiply_int(1, 1, 10000); }
 
 void perform_quicksort_int() {
   int qs_int_array[1000];
