@@ -1,7 +1,5 @@
-const int FIBONACCI = 0;
-const int MULTIPLY_INT = 1;
-const int QUICKSORT_INT = 2;
+#include <stdbool.h>
 
 char *algorithm_name(int a);
 
-void perform_algorithm(int a);
+void perform_algorithm(int a, bool is_main_thread, bool is_post_message);

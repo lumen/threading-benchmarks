@@ -6,7 +6,10 @@ import {
 import {
   ALGORITHM_FIRST,
   ALGORITHM_LAST,
-  algorithmName
+  FIBONACCI_ON_MAIN,
+  FIBONACCI_ON_MAIN_1K,
+  algorithmName,
+  algorithmDescription
 } from "./js/algorithms/algorithms.js";
 
 const SCENARIO_FIRST = 0;
@@ -14,6 +17,20 @@ const SCENARIO_JS_SPAWN_THREADS = 0;
 const SCENARIO_JS_REUSE_THREADS = 1;
 const SCENARIO_WASM_REUSE_THREADS = 2;
 const SCENARIO_LAST = 2;
+
+let counter = 0;
+
+const timeFormatter = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 4
+});
+
+function formatDuration(duration) {
+  if (duration === -1) {
+    return "N/A";
+  } else {
+    return timeFormatter.format(duration);
+  }
+}
 
 function scenarioName(scenario) {
   switch (scenario) {
@@ -50,10 +67,12 @@ function renderAlgorithms() {
     let input = document.createElement("input");
     input.id = `alg${i}`;
     input.type = "checkbox";
-    input.checked = true;
+    input.checked = i === ALGORITHM_FIRST;
     let label = document.createElement("label");
     label.htmlFor = `alg${i}`;
-    label.innerText = algorithmName(i);
+    label.innerHTML = `${algorithmName(
+      i
+    )} <span class="description">- ${algorithmDescription(i)}</span>`;
     li.appendChild(input);
     li.appendChild(label);
     container.appendChild(li);
@@ -63,11 +82,10 @@ function renderAlgorithms() {
 function renderResults(selections, results) {
   const { scenarios, algorithms, threads, iterations } = selections;
   const container = document.getElementById("results-container");
+  const title = document.createElement("h2");
+  title.innerText = `Run #${counter} (times in ms)`;
   const table = document.createElement("table");
   table.className = "results";
-  const timeFormatter = new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 4
-  });
   let tr, th, td;
 
   const thead = document.createElement("thead");
@@ -124,7 +142,7 @@ function renderResults(selections, results) {
       threads.forEach(t => {
         iterations.forEach(i => {
           td = document.createElement("td");
-          td.innerText = timeFormatter.format(results[s][a][`${t}`][`${i}`]);
+          td.innerText = formatDuration(results[s][a][`${t}`][`${i}`]);
           tr.appendChild(td);
         });
       });
@@ -135,6 +153,7 @@ function renderResults(selections, results) {
 
   table.appendChild(thead);
   table.appendChild(tbody);
+  container.appendChild(title);
   container.appendChild(table);
 }
 
@@ -235,6 +254,8 @@ async function performAll(selections) {
   const { scenarios, algorithms, threads, iterations } = selections;
   const results = {};
 
+  counter++;
+
   for (let s of scenarios) {
     options[s] = await prepareScenarioOptions(s, threads[threads.length - 1]);
   }
@@ -251,10 +272,20 @@ async function performAll(selections) {
         results[sName][aName][t] = {};
 
         for (let i of iterations) {
-          let start = performance.now();
-          await performScenario(s, a, t, i, options[s]);
-          let finished = performance.now();
-          results[sName][aName][t][i] = finished - start;
+          let duration = -1;
+          // TODO - skipping scenarios that don't fully function
+          let skip =
+            s === SCENARIO_WASM_REUSE_THREADS &&
+            (a === FIBONACCI_ON_MAIN || a === FIBONACCI_ON_MAIN_1K);
+
+          if (!skip) {
+            let start = performance.now();
+            await performScenario(s, a, t, i, options[s]);
+            let finished = performance.now();
+            duration = finished - start;
+          }
+
+          results[sName][aName][t][i] = duration;
 
           // console.log(scenarioName(s), algorithmName(a), t, i, finished - start);
         }
@@ -272,10 +303,13 @@ async function performAll(selections) {
 export function renderApp() {
   renderAlgorithms();
   renderScenarios();
-  document.getElementById("run").addEventListener("click", async function() {
+  const runButton = document.getElementById("run");
+  runButton.addEventListener("click", async function() {
+    runButton.disabled = true;
     const selections = getSelections();
     const results = await performAll(selections);
     console.log(results);
     renderResults(selections, results);
+    runButton.disabled = false;
   });
 }

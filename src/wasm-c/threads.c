@@ -7,22 +7,10 @@
 #include <emscripten.h>
 #endif
 
-// Duration in ms
-// double duration(double time_start, double time_end) {
-//   return (time_end - time_start);
-// }
-
-// double time_algorithm(int a, int iterations) {
-//   double time_start = emscripten_get_now();
-
-//   perform_algorithm_iterations(a, iterations);
-
-//   return duration(time_start, emscripten_get_now());
-// }
-
-void perform_algorithm_iterations(int a, int iterations) {
+void perform_algorithm_iterations(int a, int iterations, bool is_main_thread,
+                                  bool is_post_message) {
   for (int i = 0; i < iterations; i++) {
-    perform_algorithm(a);
+    perform_algorithm(a, is_main_thread, is_post_message);
   }
 }
 
@@ -30,23 +18,12 @@ void perform_algorithm_iterations(int a, int iterations) {
 void *bg_func(void *arg) {
   int *a = (void *)arg;
 
-  // #ifdef __EMSCRIPTEN__
-  //   emscripten_log(EM_LOG_CONSOLE, "Background: %s performed in %f ms\n",
-  //                  algorithm_name(a[0]), time_algorithm(a[0], a[1]));
-  // #endif
-
-  perform_algorithm_iterations(a[0], a[1]);
+  perform_algorithm_iterations(a[0], a[1], false, false);
 
   return arg;
 }
 
 void perform(int a, int threads, int iterations_per_thread) {
-  //   double time_start = emscripten_get_now();
-
-  // #ifdef __EMSCRIPTEN__
-  //   emscripten_log(EM_LOG_CONSOLE, "\nPerforming %s\n", algorithm_name(a));
-  // #endif
-
   // Create background threads
   pthread_t bg_thread[threads];
   for (int i = 0; i < threads; i++) {
@@ -59,8 +36,7 @@ void perform(int a, int threads, int iterations_per_thread) {
   }
 
   // Perform on the foreground thread
-  // printf("Main: %s performed in %f ms\n", algorithm_name(a),
-  //        time_algorithm(a, iterations_per_thread));
+  perform_algorithm_iterations(a, iterations_per_thread, true, false);
 
   // Wait for background threads to finish
   for (int i = 0; i < threads; i++) {
@@ -68,12 +44,6 @@ void perform(int a, int threads, int iterations_per_thread) {
       perror("Thread join failed");
     }
   }
-
-  // #ifdef __EMSCRIPTEN__
-  //   emscripten_log(EM_LOG_CONSOLE, "%s finished in %f ms\n\n",
-  //   algorithm_name(a),
-  //                  duration(time_start, emscripten_get_now()));
-  // #endif
 }
 
 // Foreground thread and main entry point
