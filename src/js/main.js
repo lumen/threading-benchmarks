@@ -16,9 +16,9 @@ export async function terminateJSWorkers(workers) {
 }
 
 export async function performAlgorithmInJS(
-  a,
+  algorithm,
   threads,
-  iterationsPerThread,
+  iterations,
   options = {}
 ) {
   // Spawn background workers if threads > 0
@@ -28,22 +28,38 @@ export async function performAlgorithmInJS(
       let workers = options.workers || prepareJSWorkers(threads);
       let finished = 0;
 
-      for (let i = 0; i < threads; i++) {
-        let worker = workers[i];
+      for (let thread = 0; thread < threads; thread++) {
+        let worker = workers[thread];
         worker.onmessage = function(e) {
-          finished++;
-          // console.log(`Worker ${e.data} finished. Total: ${finished}`);
+          let { data } = e;
 
-          // Note: Terminating each thread has significant performance implications
-          if (!workersProvided) {
-            worker.terminate();
-          }
+          if (typeof data === "object") {
+            let { algorithm } = data;
+            if (algorithm !== undefined) {
+              performAlgorithm(algorithm, true, true);
+            } else {
+              throw new Error("Unexpected message from worker");
+            }
+          } else {
+            finished++;
 
-          if (finished === threads) {
-            resolve();
+            // console.log(`Worker ${e.data} finished. Total: ${finished}`);
+
+            // Note: Terminating each thread has significant performance implications
+            if (!workersProvided) {
+              worker.terminate();
+            }
+
+            if (finished === threads) {
+              resolve();
+            }
           }
         };
-        worker.postMessage(`${a}:${i}:${iterationsPerThread}`);
+        worker.postMessage({
+          algorithm,
+          thread,
+          iterations
+        });
       }
     } else {
       resolve();
@@ -51,8 +67,8 @@ export async function performAlgorithmInJS(
   });
 
   // Perform algorithm on main thread
-  for (let i = 0; i < iterationsPerThread; i++) {
-    performAlgorithm(a);
+  for (let i = 0; i < iterations; i++) {
+    performAlgorithm(algorithm, true, false);
   }
 
   return backgroundWork;

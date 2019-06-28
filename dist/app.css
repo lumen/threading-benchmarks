@@ -28,6 +28,7 @@ button {
 
 table.results {
   margin-bottom: 50px;
+  border-collapse: collapse;
 }
 
 table.results td {
@@ -37,6 +38,12 @@ table.results td {
 table.results td,
 table.results th {
   padding: 0.5em 1em;
+}
+
+table.results tbody th {
+  border-right: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  text-align: left;
 }
 
 table.results {
