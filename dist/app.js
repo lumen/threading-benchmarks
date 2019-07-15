@@ -12,6 +12,8 @@ import {
   algorithmDescription
 } from "./js/algorithms/algorithms.js";
 
+const MAX_THREADS = 4;
+
 const SCENARIO_FIRST = 0;
 const SCENARIO_JS_SPAWN_THREADS = 0;
 const SCENARIO_JS_REUSE_THREADS = 1;
@@ -43,6 +45,17 @@ function scenarioName(scenario) {
   }
 }
 
+function scenarioDescription(scenario) {
+  switch (scenario) {
+    case SCENARIO_JS_SPAWN_THREADS:
+      return "Work performed in JS. Each result includes the cost of spawning and tearing down threads.";
+    case SCENARIO_JS_REUSE_THREADS:
+      return "Work performed in JS. Results do not include the cost of spawning and tearing down threads.";
+    case SCENARIO_WASM_REUSE_THREADS:
+      return "Work performed in emscripten-generated WASM. Persistent threads are reused.";
+  }
+}
+
 function renderScenarios() {
   let container = document.getElementById("scenarios");
   for (let i = SCENARIO_FIRST; i <= SCENARIO_LAST; i++) {
@@ -53,7 +66,9 @@ function renderScenarios() {
     input.checked = true;
     let label = document.createElement("label");
     label.htmlFor = `scenario${i}`;
-    label.innerText = scenarioName(i);
+    label.innerHTML = `${scenarioName(
+      i
+    )} <span class="description">- ${scenarioDescription(i)}</span>`;
     li.appendChild(input);
     li.appendChild(label);
     container.appendChild(li);
@@ -92,10 +107,12 @@ function renderResults(selections, results) {
   tr = document.createElement("tr");
   th = document.createElement("th");
   th.colSpan = 2;
+  th.innerText = "Background threads";
+  th.className = "label";
   tr.appendChild(th);
   threads.forEach(t => {
     th = document.createElement("th");
-    th.innerText = `Threads: ${t}`;
+    th.innerText = `${t}`;
     th.colSpan = iterations.length;
     tr.appendChild(th);
   });
@@ -104,6 +121,8 @@ function renderResults(selections, results) {
   tr = document.createElement("tr");
   th = document.createElement("th");
   th.colSpan = 2;
+  th.innerText = "Work multiplier";
+  th.className = "label";
   tr.appendChild(th);
   threads.forEach(t => {
     iterations.forEach(i => {
@@ -140,11 +159,16 @@ function renderResults(selections, results) {
       tr.appendChild(th);
 
       threads.forEach(t => {
-        iterations.forEach(i => {
+        for (let i of iterations) {
           td = document.createElement("td");
           td.innerText = formatDuration(results[s][a][`${t}`][`${i}`]);
+          if (i === iterations[0]) {
+            td.className = "first";
+          } else if (i === iterations[iterations.length - 1]) {
+            td.className = "last";
+          }
           tr.appendChild(td);
-        });
+        }
       });
 
       tbody.appendChild(tr);
@@ -211,6 +235,11 @@ async function prepareScenarioOptions(scenario, maxThreads) {
       };
 
     case SCENARIO_WASM_REUSE_THREADS:
+      if (maxThreads > MAX_THREADS) {
+        throw new Error(
+          `Emscripten has been compiled to use a maximum of ${MAX_THREADS} threads. Please decrease the max thread count.`
+        );
+      }
       return;
   }
 }
@@ -253,8 +282,6 @@ async function performAll(selections) {
   const options = {};
   const { scenarios, algorithms, threads, iterations } = selections;
   const results = {};
-
-  counter++;
 
   for (let s of scenarios) {
     options[s] = await prepareScenarioOptions(s, threads[threads.length - 1]);
@@ -300,16 +327,41 @@ async function performAll(selections) {
   return results;
 }
 
+async function run() {
+  counter++;
+
+  if (document.getElementById("clearResults").checked) {
+    document.getElementById("results-container").innerHTML = "";
+  }
+
+  try {
+    const selections = getSelections();
+
+    if (document.getElementById("dryRun").checked) {
+      await performAll(selections);
+      console.log("Dry run complete");
+    }
+
+    const results = await performAll(selections);
+    // console.log(results);
+
+    renderResults(selections, results);
+  } catch (e) {
+    if (e.message.indexOf("Module.callMain is not a function") === 0) {
+      window.alert("Emscripten WASM scenario cannot be run in this browser.");
+    } else {
+      window.alert(e.message);
+    }
+  }
+}
+
 export function renderApp() {
   renderAlgorithms();
   renderScenarios();
   const runButton = document.getElementById("run");
   runButton.addEventListener("click", async function() {
     runButton.disabled = true;
-    const selections = getSelections();
-    const results = await performAll(selections);
-    console.log(results);
-    renderResults(selections, results);
+    await run();
     runButton.disabled = false;
   });
 }
