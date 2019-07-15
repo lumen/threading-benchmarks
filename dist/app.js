@@ -347,7 +347,11 @@ async function run() {
 
     renderResults(selections, results);
   } catch (e) {
-    window.alert(e.message);
+    if (e.message.indexOf("Module.callMain is not a function") === 0) {
+      window.alert("Emscripten WASM scenario cannot be run in this browser.");
+    } else {
+      window.alert(e.message);
+    }
   }
 }
 
