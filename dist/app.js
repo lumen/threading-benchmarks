@@ -12,6 +12,8 @@ import {
   algorithmDescription
 } from "./js/algorithms/algorithms.js";
 
+const MAX_THREADS = 4;
+
 const SCENARIO_FIRST = 0;
 const SCENARIO_JS_SPAWN_THREADS = 0;
 const SCENARIO_JS_REUSE_THREADS = 1;
@@ -233,6 +235,11 @@ async function prepareScenarioOptions(scenario, maxThreads) {
       };
 
     case SCENARIO_WASM_REUSE_THREADS:
+      if (maxThreads > MAX_THREADS) {
+        throw new Error(
+          `Emscripten has been compiled to use a maximum of ${MAX_THREADS} threads. Please decrease the max thread count.`
+        );
+      }
       return;
   }
 }
@@ -327,17 +334,21 @@ async function run() {
     document.getElementById("results-container").innerHTML = "";
   }
 
-  const selections = getSelections();
+  try {
+    const selections = getSelections();
 
-  if (document.getElementById("dryRun").checked) {
-    await performAll(selections);
-    console.log("Dry run complete");
+    if (document.getElementById("dryRun").checked) {
+      await performAll(selections);
+      console.log("Dry run complete");
+    }
+
+    const results = await performAll(selections);
+    // console.log(results);
+
+    renderResults(selections, results);
+  } catch (e) {
+    window.alert(e.message);
   }
-
-  const results = await performAll(selections);
-  // console.log(results);
-
-  renderResults(selections, results);
 }
 
 export function renderApp() {
