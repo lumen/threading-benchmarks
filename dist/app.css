@@ -47,12 +47,28 @@ table.results tbody th {
 }
 
 table.results {
-  border-bottom: 1px solid #ccc;
+  border: 1px solid #ccc;
 }
 
 table.results tr.scenario td,
 table.results tr.scenario th {
   border-top: 1px solid #ccc;
+}
+
+table.results tr td.first {
+  border-left: 1px solid #ccc;
+}
+
+table.results tr td.last {
+  border-right: 1px solid #ccc;
+}
+
+table.results thead th.label {
+  text-align: left;
+}
+
+table.results thead th {
+  border: 1px solid #ccc;
 }
 
 .description {

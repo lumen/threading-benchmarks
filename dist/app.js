@@ -105,10 +105,12 @@ function renderResults(selections, results) {
   tr = document.createElement("tr");
   th = document.createElement("th");
   th.colSpan = 2;
+  th.innerText = "Background threads";
+  th.className = "label";
   tr.appendChild(th);
   threads.forEach(t => {
     th = document.createElement("th");
-    th.innerText = `Threads: ${t}`;
+    th.innerText = `${t}`;
     th.colSpan = iterations.length;
     tr.appendChild(th);
   });
@@ -117,6 +119,8 @@ function renderResults(selections, results) {
   tr = document.createElement("tr");
   th = document.createElement("th");
   th.colSpan = 2;
+  th.innerText = "Work multiplier";
+  th.className = "label";
   tr.appendChild(th);
   threads.forEach(t => {
     iterations.forEach(i => {
@@ -153,11 +157,16 @@ function renderResults(selections, results) {
       tr.appendChild(th);
 
       threads.forEach(t => {
-        iterations.forEach(i => {
+        for (let i of iterations) {
           td = document.createElement("td");
           td.innerText = formatDuration(results[s][a][`${t}`][`${i}`]);
+          if (i === iterations[0]) {
+            td.className = "first";
+          } else if (i === iterations[iterations.length - 1]) {
+            td.className = "last";
+          }
           tr.appendChild(td);
-        });
+        }
       });
 
       tbody.appendChild(tr);
