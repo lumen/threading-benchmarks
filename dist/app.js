@@ -267,8 +267,6 @@ async function performAll(selections) {
   const { scenarios, algorithms, threads, iterations } = selections;
   const results = {};
 
-  counter++;
-
   for (let s of scenarios) {
     options[s] = await prepareScenarioOptions(s, threads[threads.length - 1]);
   }
@@ -313,16 +311,33 @@ async function performAll(selections) {
   return results;
 }
 
+async function run() {
+  counter++;
+
+  const selections = getSelections();
+
+  if (document.getElementById("dryRun").checked) {
+    await performAll(selections);
+    console.log("Dry run complete");
+  }
+
+  const results = await performAll(selections);
+  // console.log(results);
+
+  if (document.getElementById("clearResults").checked) {
+    document.getElementById("results-container").innerHTML = "";
+  }
+
+  renderResults(selections, results);
+}
+
 export function renderApp() {
   renderAlgorithms();
   renderScenarios();
   const runButton = document.getElementById("run");
   runButton.addEventListener("click", async function() {
     runButton.disabled = true;
-    const selections = getSelections();
-    const results = await performAll(selections);
-    console.log(results);
-    renderResults(selections, results);
+    await run();
     runButton.disabled = false;
   });
 }
