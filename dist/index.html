@@ -21,30 +21,31 @@
   </head>
   <body>
     <h1>Threading benchmarks</h1>
+
     <section>
       <h3>Scenarios</h3>
       <ul id="scenarios" class="inputs" />
     </section>
 
     <section>
-      <h3>Algorithms</h3>
+      <h3>Work</h3>
       <ul id="algorithms" class="inputs" />
     </section>
 
     <section>
-      <h3>Threads</h3>
-      <section class="inputs">
-        <label>Min:</label><input type="number" id="minThreads" value="0" />
-        <label>Max:</label><input type="number" id="maxThreads" value="4" />
-      </section>
-    </section>
-
-    <section>
-      <h3>Iterations per thread</h3>
+      <h3>Work multiplier</h3>
       <section class="inputs">
         <label>Min:</label><input type="number" id="minIterations" value="0" />
         <label>Max:</label><input type="number" id="maxIterations" value="10" />
         <label>Step:</label><input type="number" id="stepIterations" value="5" />
+      </section>
+    </section>
+
+    <section>
+      <h3>Background threads</h3>
+      <section class="inputs">
+        <label for="minThreads">Min:</label><input type="number" id="minThreads" value="0" min="0" max="4" />
+        <label for="maxThreads">Max:</label><input type="number" id="maxThreads" value="4" min="0" max="4" />
       </section>
     </section>
 
