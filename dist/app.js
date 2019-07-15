@@ -43,6 +43,17 @@ function scenarioName(scenario) {
   }
 }
 
+function scenarioDescription(scenario) {
+  switch (scenario) {
+    case SCENARIO_JS_SPAWN_THREADS:
+      return "Work performed in JS. Each result includes the cost of spawning and tearing down threads.";
+    case SCENARIO_JS_REUSE_THREADS:
+      return "Work performed in JS. Results do not include the cost of spawning and tearing down threads.";
+    case SCENARIO_WASM_REUSE_THREADS:
+      return "Work performed in emscripten-generated WASM. Persistent threads are reused.";
+  }
+}
+
 function renderScenarios() {
   let container = document.getElementById("scenarios");
   for (let i = SCENARIO_FIRST; i <= SCENARIO_LAST; i++) {
@@ -53,7 +64,9 @@ function renderScenarios() {
     input.checked = true;
     let label = document.createElement("label");
     label.htmlFor = `scenario${i}`;
-    label.innerText = scenarioName(i);
+    label.innerHTML = `${scenarioName(
+      i
+    )} <span class="description">- ${scenarioDescription(i)}</span>`;
     li.appendChild(input);
     li.appendChild(label);
     container.appendChild(li);
