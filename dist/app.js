@@ -323,6 +323,10 @@ async function performAll(selections) {
 async function run() {
   counter++;
 
+  if (document.getElementById("clearResults").checked) {
+    document.getElementById("results-container").innerHTML = "";
+  }
+
   const selections = getSelections();
 
   if (document.getElementById("dryRun").checked) {
@@ -332,10 +336,6 @@ async function run() {
 
   const results = await performAll(selections);
   // console.log(results);
-
-  if (document.getElementById("clearResults").checked) {
-    document.getElementById("results-container").innerHTML = "";
-  }
 
   renderResults(selections, results);
 }
