@@ -13,22 +13,22 @@ const int QUICKSORT_INT = 2;
 const int FIBONACCI_ON_MAIN = 3;
 const int FIBONACCI_ON_MAIN_1K = 4;
 
-// char *algorithm_name(int a) {
-//   switch (a) {
-//   case FIBONACCI:
-//     return "Fibonacci";
-//   case MULTIPLY_INT:
-//     return "Multiply(Int)";
-//   case QUICKSORT_INT:
-//     return "Quicksort(Int)";
-//   case FIBONACCI_ON_MAIN:
-//     return "Fibonacci (1K times on main x 1 call)";
-//   case FIBONACCI_ON_MAIN_1K:
-//     return "Fibonacci (1 time on main x 1K calls)";
-//   default:
-//     return "UNKNOWN ALGORITHM";
-//   }
-// }
+char *algorithm_name(int a) {
+  switch (a) {
+  case FIBONACCI:
+    return "Fibonacci";
+  case MULTIPLY_INT:
+    return "Multiply(Int)";
+  case QUICKSORT_INT:
+    return "Quicksort(Int)";
+  case FIBONACCI_ON_MAIN:
+    return "Fibonacci (1K times on main x 1 call)";
+  case FIBONACCI_ON_MAIN_1K:
+    return "Fibonacci (1 time on main x 1K calls)";
+  default:
+    return "UNKNOWN ALGORITHM";
+  }
+}
 
 // TODO - configure listener for worker
 #ifdef __EMSCRIPTEN__

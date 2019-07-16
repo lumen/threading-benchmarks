@@ -7,13 +7,13 @@
   "scripts": {
     "clean:js": "rm -rf dist/js && mkdir dist/js && mkdir dist/js/algorithms",
     "clean:wc": "rm -rf dist/wasm-c && mkdir dist/wasm-c",
+    "clean:nc": "rm -rf dist/native-c && mkdir dist/native-c",
     "build:js": "yarn run clean:js && cp src/js/* dist/js/ && cp src/algorithms/*.js dist/js/algorithms/ && yarn run rollup:worker",
     "rollup:worker": "rollup src/js/worker.js --file dist/js/worker.js --format iife --no-treeshake",
-    "build:nc": "gcc src/native-c/threads.c src/algorithms/*.c -O2 -o ./dist/native-c/threads",
+    "build:nc": "yarn run clean:nc && gcc src/native-c/threads.c src/algorithms/*.c -O2 -o ./dist/native-c/threads",
     "build:wc": "yarn run clean:wc && emcc src/wasm-c/threads.c src/algorithms/*.c -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=4 -o ./dist/wasm-c/threads.js",
     "build": "yarn run build:js && yarn run build:wc",
     "serve": "http-server -c-1 ./dist/",
-    "serve:wc": "http-server -c-1 ./dist/wasm-c/",
     "exec:nc": "./dist/native-c/threads"
   },
   "repository": {
@@ -27,6 +27,7 @@
   },
   "homepage": "https://github.com/lumen/threading-benchmarks#readme",
   "dependencies": {
+    "http-server": "0.11.1",
     "rollup": "^1.16.2"
   }
 }

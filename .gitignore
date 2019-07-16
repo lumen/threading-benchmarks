@@ -1,4 +1,5 @@
 dist/wasm-c
 dist/js
+dist/native-c
 !dist/index.html
 node_modules
