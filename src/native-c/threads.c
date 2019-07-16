@@ -9,11 +9,12 @@ double duration(clock_t time_start, clock_t time_end) {
   return ((double)(time_end - time_start)) / CLOCKS_PER_SEC * 1000;
 }
 
-double time_algorithm(int a, int iterations) {
+double time_algorithm(int a, int iterations, bool is_main_thread,
+                      bool is_post_message) {
   clock_t time_start = clock();
 
   for (int i = 0; i < iterations; i++) {
-    perform_algorithm(a);
+    perform_algorithm(a, is_main_thread, is_post_message);
   }
 
   return duration(time_start, clock());
@@ -24,7 +25,7 @@ void *bg_func(void *arg) {
   int *a = (void *)arg;
 
   printf("Background: %s performed in %f ms\n", algorithm_name(a[0]),
-         time_algorithm(a[0], a[1]));
+         time_algorithm(a[0], a[1], false, false));
 
   return arg;
 }
@@ -47,7 +48,7 @@ void perform(int a, int threads, int iterations_per_thread) {
 
   // Perform on the foreground thread
   printf("Main: %s performed in %f ms\n", algorithm_name(a),
-         time_algorithm(a, iterations_per_thread));
+         time_algorithm(a, iterations_per_thread, true, false));
 
   // Wait for background threads to finish
   for (int i = 0; i < threads; i++) {
