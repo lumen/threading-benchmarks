@@ -13,7 +13,6 @@
     "build:wc": "yarn run clean:wc && emcc src/wasm-c/threads.c src/algorithms/*.c -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=4 -o ./dist/wasm-c/threads.js",
     "build": "yarn run build:js && yarn run build:wc",
     "serve": "http-server -c-1 ./dist/",
-    "serve:wc": "http-server -c-1 ./dist/wasm-c/",
     "exec:nc": "./dist/native-c/threads"
   },
   "repository": {
